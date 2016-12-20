@@ -14,3 +14,8 @@
 *.out
 *.app
 SpeedTestC
+*.swp
+*.swo
+.svn
+*.php
+tags

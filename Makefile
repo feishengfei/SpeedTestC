@@ -1,22 +1,58 @@
-CC = gcc
-CFLAGS = -g -std=c99 -Wall
-LIBS = -lm
-OBJS = src/Speedtest.c \
-	src/SpeedtestConfig.c \
-	src/SpeedtestServers.c \
-	src/url.c \
-	src/http.c
+#
+# Copyright (C) 2010-2012 OpenWrt.org
+#
+# This Makefile and the code shipped in src/ is free software, licensed
+# under the GNU Lesser General Public License, version 2.1 and later.
+# See src/COPYING for more information.
+#
+# Refer to src/COPYRIGHT for copyright statements on the source files.
+#
 
-all:	SpeedTestC
+include $(TOPDIR)/rules.mk
 
-SpeedTestC: $(OBJS)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
+PKG_NAME:=SpeedTestC
+PKG_VERSION:=1.0
+PKG_RELEASE:=1
 
-test:	SpeedTestC
-	valgrind --leak-check=full --show-leak-kinds=all ./SpeedTestC --server http://speedtest.skynet.net.pl/speedtest/upload.php
-	valgrind --leak-check=full --show-leak-kinds=all ./SpeedTestC
+include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/host-build.mk
 
-clean:
-	rm SpeedTestC
+define Package/SpeedTestC
+  SECTION:=utils
+  CATEGORY:=Utilities
+  TITLE:=SpeedTestC
+  URL:=https://github.com/mobrembski/SpeedTestC
+endef
 
-.PHONY: all
+define Package/SpeedTestC/description
+	Client for SpeedTest.net infrastructure written in pure C99 standard using only POSIX libraries.
+	Main purpose for this project was to deliver client for Speedtest.net infrastructure for embedded devices.
+	All application is written in pure C99 standard (it should compile with C99 too), without using any external libraries - only POSIX is used.
+	Code is not perfect, and it has a few bugs, but it is stable and it works.
+	Big thanks for Luke Graham for his http function.
+endef
+
+export CROSS_COMPILE=y
+
+define Build/Compile
+	$(MAKE) -C $(PKG_BUILD_DIR) \
+		CC="$(TARGET_CC)" \
+		CFLAGS="$(TARGET_CFLAGS) -I. \
+			-I $(STAGING_DIR)/usr/include \
+			-Wall -Werror \
+			-std=c99 " \
+		LDFLAGS="$(TARGET_LDFLAGS) \
+			-L $(STAGING_DIR)/usr/lib -lm"
+endef
+
+define Build/Prepare
+	$(INSTALL_DIR) $(PKG_BUILD_DIR)
+	$(CP) ./src/* $(PKG_BUILD_DIR)/
+endef
+
+define Package/SpeedTestC/install
+	$(INSTALL_DIR) $(1)/bin
+	$(CP) $(PKG_BUILD_DIR)/SpeedTestC $(1)/bin
+endef
+
+$(eval $(call BuildPackage,SpeedTestC))

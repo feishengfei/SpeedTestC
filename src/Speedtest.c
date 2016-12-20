@@ -15,6 +15,26 @@
 #include "SpeedtestServers.h"
 #include "Speedtest.h"
 
+int serverCount = 0;
+int i, size, sockId;
+unsigned totalDownloadTestCount = 1;
+char buffer[BUFFER_SIZE] = {0};
+char *downloadUrl = NULL;
+char *tmpUrl = NULL;
+char *uploadUrl = NULL;
+int randomizeBestServers = 0;
+int quietMode = 0;
+
+unsigned long totalTransfered = 1024 * 1024;
+unsigned long totalToBeTransfered = 1024 * 1024;
+unsigned long totalToBeReceived = 1024 * 1024;
+
+struct timeval tval_start;
+SPEEDTESTCONFIG_T *speedTestConfig;
+SPEEDTESTSERVER_T **serverList;
+float elapsedSecs, speed;
+
+
 int sortServers(SPEEDTESTSERVER_T **srv1, SPEEDTESTSERVER_T **srv2)
 {
     return((*srv1)->distance - (*srv2)->distance);
@@ -42,11 +62,11 @@ void parseCmdLine(int argc, char **argv) {
             \t--help - Show this help.\n\
             \t--server URL - use server URL, don'read config.\n\
             \t--upsize SIZE - use upload size of SIZE bytes.\n\
+            \t--downsize SIZE - choose to download a file about downsize bytes.\n\
             \t--downtimes TIMES - how many times repeat download test.\n\
-            \tSingle download test is downloading 30MB file.\n\
             \t--randomize NUMBER - randomize server usage for NUMBER of best servers\n\
             \nDefault action: Get server from Speedtest.NET infrastructure\n\
-            and test download with 30MB download size and 1MB upload size.\n");
+            and test download with 1118012B download size and 1MB upload size.\n");
             exit(1);
         }
         if(strcmp("--server", argv[i]) == 0)
@@ -57,6 +77,10 @@ void parseCmdLine(int argc, char **argv) {
         if(strcmp("--upsize", argv[i]) == 0)
         {
             totalToBeTransfered = strtoul(argv[i + 1], NULL, 10);
+        }
+        if(strcmp("--downsize", argv[i]) == 0)
+        {
+            totalToBeReceived = strtoul(argv[i + 1], NULL, 10);
         }
         if(strcmp("--downtimes", argv[i]) == 0)
         {

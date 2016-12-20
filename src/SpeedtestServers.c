@@ -8,6 +8,21 @@
 #include <string.h>
 #include "SpeedtestServers.h"
 #include "http.h"
+#include "Speedtest.h"
+
+SPEEDTESTDOWNLOAD_T download_file_table[] =
+{
+	{"random350x350.jpg",245388},
+	{"random500x500.jpg",505544},
+	{"random750x750.jpg",1118012},
+	{"random1000x1000.jpg",1986284},
+	{"random1500x1500.jpg",4468241},
+	{"random2000x2000.jpg",7907740},
+	{"random2500x2500.jpg",12407926},
+	{"random3000x3000.jpg",17816816},
+	{"random3500x3500.jpg",24262167},
+	{"random4000x4000.jpg",31625365},
+};
 
 void parseServer(SPEEDTESTSERVER_T *result, const char *configline)
 {
@@ -95,8 +110,27 @@ SPEEDTESTSERVER_T **getServers(int *serverCount, const char *infraUrl)
     return NULL;
 }
 
+int chooseDownloadFile()
+{
+	int i = 0;
+	unsigned long delta = 0;
+	unsigned long max = 0xffffffff;
+	int ret = 0;
+	for( i = 0; i < (sizeof(download_file_table)/sizeof(download_file_table[0])); i++) {
+		delta = (totalToBeReceived >= download_file_table[i].filesize) ?
+			totalToBeReceived - download_file_table[i].filesize :
+			download_file_table[i].filesize - totalToBeReceived;
+		if(delta < max) {
+			max = delta;
+			ret = i;
+		}
+	}
+	return ret;
+}
+
 char *getServerDownloadUrl(char *serverUrl)
 {
+	int file_index = chooseDownloadFile();
     size_t urlSize = strlen(serverUrl);
     char *upload = strstr(serverUrl, "upload.php");
     if(upload == NULL) {
@@ -106,10 +140,11 @@ char *getServerDownloadUrl(char *serverUrl)
     }
     size_t uploadSize = strlen(upload);
     size_t totalSize = (urlSize - uploadSize) +
-        strlen("random4000x4000.jpg") + 1;
+        strlen(download_file_table[file_index].filename) + 1;
     char *result = (char*)malloc(sizeof(char) * totalSize);
     result[(urlSize - uploadSize)] = '\0';
     memcpy(result, serverUrl, urlSize - uploadSize);
-    strcat(result, "random4000x4000.jpg");
+    strcat(result, download_file_table[file_index].filename);
+    printf("download test url:%s\n", result);
     return result;
 }
