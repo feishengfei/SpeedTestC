@@ -19,7 +19,7 @@ include $(INCLUDE_DIR)/host-build.mk
 
 define Package/SpeedTestC
   SECTION:=utils
-  CATEGORY:=Utilities
+  CATEGORY:=Network
   TITLE:=SpeedTestC
   URL:=https://github.com/mobrembski/SpeedTestC
 endef
