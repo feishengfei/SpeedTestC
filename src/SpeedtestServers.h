@@ -16,6 +16,8 @@ SPEEDTESTSERVER_T **getServers(int *serverCount, const char *infraUrl);
 char *getServerDownloadUrl(char *serverUrl);
 
 /*
+ * url:http://rimouski.speedtest.telus.com/speedtest/
+ *
  * Directory: /speedtest/
  *
  * Parent Directory
